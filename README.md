@@ -536,9 +536,14 @@ Instead of adding the password, you can create a personal Access token from the 
 
 ![2](https://github.com/user-attachments/assets/a9f5e70c-5e85-47f7-b5a3-14f6c9ab9331)
 
-Copy it and save for later(It will works as a password credential of Docker Hub).
+Generate and copy it and save for later(It will works as a password credential of Docker Hub).
 
 ![access](https://github.com/user-attachments/assets/d0a87bc1-ac33-408d-9102-7cf6b886b30d)
+
+
+Now we have two credential in the "Global Credentials" section.
+
+![11](https://github.com/user-attachments/assets/6272207d-3f51-4fd9-b6ce-1fcf43f50036)
 
 
 
@@ -546,28 +551,32 @@ Copy it and save for later(It will works as a password credential of Docker Hub)
 
 Now we are going to run the below commands on the Ansible server
 
-Step1:Update your system packages:
+Update your system packages:
 
-
+```
 sudo apt-get update
-Step 2: First Install Required packages to install Ansible.
+```
 
+First Install Required packages to install Ansible.
 
+```
 sudo apt install software-properties-common
+```
 
+Add the ansible repository via PPA
 
-Step3: Add the ansible repository via PPA
-
-
+```
 sudo add-apt-repository --yes --update ppa:ansible/ansible
-
+```
 
 Install Python3 on the Ansible master
 
-
+```
 sudo apt install python3
+```
 
-====================================================================================================================================
+
+==============================================================================================================
 
 
 

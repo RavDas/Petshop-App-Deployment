@@ -1,4 +1,4 @@
-We will be deploying our application in two ways, one using Docker Container and the other using K8S cluster.
+![image](https://github.com/user-attachments/assets/2f4cec47-c639-4ec1-a7d9-07efacf981f3)We will be deploying our application in two ways, one using Docker Container and the other using K8S cluster.
 
 
 Step 1 - Create an Ubuntu(22.04) T2 Large Instance 
@@ -379,52 +379,65 @@ You will this page once you click on create
 
 Now, go to Dashboard → Manage Jenkins → System and Add like the below image.
 
+![image](https://github.com/user-attachments/assets/5e8dc85e-8383-4879-9cbb-4c5e870e7679)
+
+Click on Apply and Save.
 
 
-Click on Apply and Save
+**System Configurion** option is used in Jenkins to configure different server
 
-The Configure System option is used in Jenkins to configure different server
+**Global Tool Configuration** is used to configure different tools that we install using Plugins
 
-Global Tool Configuration is used to configure different tools that we install using Plugins
+We will install a SonarQube Scanner in the Manage → Tools.
 
-We will install a sonar scanner in the tools.
+![image](https://github.com/user-attachments/assets/8c294deb-9100-4ed7-a652-7606c45ae823)
 
-
-
-In the Sonarqube Dashboard add a quality gate also
-
-Administration–> Configuration–>Webhooks
+Click on Apply and Save.
 
 
+In Sonarqube Dashboard, quality gate should be added.
+
+![1 2](https://github.com/user-attachments/assets/6065c31e-f1f1-48d2-8a82-7b34f76467dc)
+
+Administration –> Configuration –> Webhooks
+
+![image](https://github.com/user-attachments/assets/cd62f836-1281-4e6c-8903-bcde690f7138)
 
 Click on Create
 
-
+![image](https://github.com/user-attachments/assets/ed9c7209-d72d-475a-9dca-55c5ac8a2cf6)
 
 Add details
 
+![image](https://github.com/user-attachments/assets/a0e53c3c-4d82-4a25-8992-cda0894198ab)
 
+
+```
 #in url section of quality gate
 <http://jenkins-public-ip:8090>/sonarqube-webhook/
+```
 
 
 Let’s go to our Pipeline and add Sonarqube Stage in our Pipeline Script.
+
 
 ```
 #under tools section add this environment
 environment {
         SCANNER_HOME=tool 'sonar-scanner'
     }
+
 # in stages add this
-stage("Sonarqube Analysis "){
+        stage("Sonarqube Analysis "){
             steps{
-                withSonarQubeEnv('sonar-server') {
-                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Petshop \
-                    -Dsonar.java.binaries=. \
-                    -Dsonar.projectKey=Petshop '''
-                }
+              withSonarQubeEnv('sonar-server') {
+                  sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Petshop \
+                  -Dsonar.java.binaries=. \
+                  -Dsonar.projectKey=Petshop '''ge 
+              }
             }
         }
+
         stage("quality gate"){
             steps {
                 script {
@@ -434,12 +447,18 @@ stage("Sonarqube Analysis "){
         }
 ```
 
-Click on Build now, you will see the stage view like this
+In above we add "quality gate" to stop the pipeline building further if "Sonarqube Analysis" fails.
 
+
+
+Click on Build now, you will see the stage view like this,
+
+![image](https://github.com/user-attachments/assets/a68bb2c1-f89e-49c4-87fe-140bbfb737d8)
 
 
 To see the report, you can go to Sonarqube Server and go to Projects.
 
+![image](https://github.com/user-attachments/assets/46d8c81a-2571-444d-b4ed-73010ad33fba)
 
 
 You can see the report has been generated and the status shows as passed. You can see that there are 6.7k lines. To see a detailed report, you can go to issues.

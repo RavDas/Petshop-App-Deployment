@@ -29,14 +29,16 @@ Launch an AWS T2 Large Instance. Use the image as Ubuntu. You can create a new k
 
 ![image](https://github.com/user-attachments/assets/a61ddcd3-8913-42a2-9bf9-97c3948da5fa)
 
+Here you need to have the created key-pair(.pem file) in the file directory of the your local machine that you launch your console inorder to ssh into EC2 instance which is attached with the same key-pair(.pem file).
+
 ![image](https://github.com/user-attachments/assets/85ac7c7d-67c1-4c7a-8d2c-645adfc22cde)
 
-![Uploading image.png…]()
+![image](https://github.com/user-attachments/assets/753b71b7-5524-40a0-aa56-791c420f0906)
 
 
 **OR**
 
-ssh into the EC2 instance using GUI of the MobaXtreme termminal like below.
+ssh into the EC2 instance using GUI of the MobaXtreme termminal like below (Here you can simply attach the key-pair in "Use private key" section).
 
 ![image](https://github.com/user-attachments/assets/2ae5a416-c1fc-4381-a04c-84cecfee8095)
 

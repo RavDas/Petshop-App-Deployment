@@ -1,4 +1,7 @@
-![image](https://github.com/user-attachments/assets/2f4cec47-c639-4ec1-a7d9-07efacf981f3)We will be deploying our application in two ways, one using Docker Container and the other using K8S cluster.
+
+![Untitled design](https://github.com/user-attachments/assets/c5917b6b-96fa-4894-b647-f53ca04af7e4)
+
+We will be deploying our application in two ways, one using Docker Container and the other using K8S cluster.
 
 
 Step 1 - Create an Ubuntu(22.04) T2 Large Instance 

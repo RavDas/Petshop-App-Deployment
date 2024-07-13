@@ -449,8 +449,6 @@ environment {
 
 In above we add "quality gate" to stop the pipeline building further if "Sonarqube Analysis" fails.
 
-
-
 Click on Build now, you will see the stage view like this,
 
 ![image](https://github.com/user-attachments/assets/a68bb2c1-f89e-49c4-87fe-140bbfb737d8)
@@ -463,9 +461,108 @@ To see the report, you can go to Sonarqube Server and go to Projects.
 
 You can see the report has been generated and the status shows as passed. You can see that there are 6.7k lines. To see a detailed report, you can go to issues.
 
-Step 5 — Install OWASP Dependency Check Plugins
+### Step 5 — Install OWASP Dependency Check Plugins
+
+Goto Dashboard → Manage Jenkins → Plugins → OWASP Dependency-Check. Click on it and install it without restart.
+
+![image](https://github.com/user-attachments/assets/f6bedcee-adba-4dc7-b265-aa1cd557b898)
+
+First, we configured the Plugin and next, we had to configure the Tool
+
+Goto Dashboard → Manage Jenkins → Tools →
+
+![image](https://github.com/user-attachments/assets/6e5696ad-484f-4878-b180-ee4402f56487)
+
+Click on Apply and Save here.
+
+Now go configure → Pipeline and add this stage to your pipeline and build.
 
 
+```
+        stage ('Build war file'){
+            steps{
+                sh 'mvn clean install -DskipTests=true'
+            }
+        }
+
+        stage("OWASP Dependency Check"){
+            steps{
+                dependencyCheck additionalArguments: '--scan ./ --format XML ', odcInstallation: 'DP-Check'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+```
+
+![image](https://github.com/user-attachments/assets/6d782e9f-6cc3-442a-8958-093f56bebed9)
+
+You will see that in status, a graph will also be generated and Vulnerabilities.
+
+![image](https://github.com/user-attachments/assets/c82ff299-7c32-450e-80b9-7dbe33c5251f)
+
+
+### Step 6 — Docker plugin and credential Setup
+
+We need to install the Docker tool in our system, 
+
+Goto Dashboard → Manage Plugins → Available plugins → Search for Docker and install these plugins
+
+* Docker
+
+* Docker Commons
+
+* Docker Pipeline
+
+* Docker API
+
+* docker-build-step
+
+and click on install without restart
+
+![image](https://github.com/user-attachments/assets/99c09464-7b2c-4e18-9864-41b7f3a3d65b)
+
+Now, goto Dashboard → Manage Jenkins → Tools 
+
+![image](https://github.com/user-attachments/assets/b5e07545-d5d7-43d4-8fc7-0fa1edad8cb1)
+
+
+Add DockerHub Username and Password under Global Credentials
+
+![1](https://github.com/user-attachments/assets/b67292d0-2bfd-4424-851c-2ff6f645eb4e)
+
+Instead of adding the password, you can create a personal Access token from the Docker Hub which can also be used for ansible-playbook.
+
+![2](https://github.com/user-attachments/assets/a9f5e70c-5e85-47f7-b5a3-14f6c9ab9331)
+
+Copy it and save for later(It will works as a password credential of Docker Hub).
+
+![access](https://github.com/user-attachments/assets/d0a87bc1-ac33-408d-9102-7cf6b886b30d)
+
+
+
+### STEP 7 -Adding Ansible Repository in Ubuntu
+
+Now we are going to run the below commands on the Ansible server
+
+Step1:Update your system packages:
+
+
+sudo apt-get update
+Step 2: First Install Required packages to install Ansible.
+
+
+sudo apt install software-properties-common
+
+
+Step3: Add the ansible repository via PPA
+
+
+sudo add-apt-repository --yes --update ppa:ansible/ansible
+
+
+Install Python3 on the Ansible master
+
+
+sudo apt install python3
 
 ====================================================================================================================================
 

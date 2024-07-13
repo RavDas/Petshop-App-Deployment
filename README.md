@@ -298,11 +298,161 @@ Goto Manage Jenkins -> Tools -> Install JDK(17) and Maven3(3.6.0) -> Click on Ap
 
 #### 3C — Create a Job
 
-Label it as PETSHOP, click on Pipeline and OK.
+Label it as "petshop", click on Pipeline and OK.
 
 ![image](https://github.com/user-attachments/assets/fc55a5fb-9268-4c0b-b5a1-a094273dc243)
 
-=============================================================================================================================================================================================================================================
+Then you will enter to "Configurations" page of the created pipepline. In "General" section under "Configuration";
+
+Tick on "Discard old builds" and set "Max # of build to keep" to 3.
+
+Then enter below Pipeline Script in the "Pipeline" section ,
+
+```
+pipeline{
+    agent any
+    tools {
+        jdk 'jdk17'
+        maven 'maven3'
+    }
+    stages{
+        stage ('clean Workspace'){
+            steps{
+                cleanWs()
+            }
+        }
+        stage ('checkout scm') {
+            steps {
+                git 'https://github.com/RavDas/Petshop-App-Deployment.git'
+            }
+        }
+        stage ('maven compile') {
+            steps {
+                sh 'mvn clean compile'
+            }
+        }
+        stage ('maven Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+   }
+}
+```
+
+The "Apply" and "Save"
+
+The stage view would look like this,
+
+![image](https://github.com/user-attachments/assets/8f2b3c91-bc0a-43cf-a923-de9add3855a9)
+
+
+
+### Step 4 — Configure Sonar Server in Manage Jenkins
+
+Grab the Public IP Address of your EC2 Instance, Sonarqube works on Port 9000, so <Public IP>:9000.
+
+Goto your Sonarqube Server. Click on Administration → Security → Users → Click on Tokens and Update Token → Give it a name → and click on Generate Token
+
+![image](https://github.com/user-attachments/assets/860e5557-b946-4fa3-bdf8-832031881b78)
+
+Click on Update Token
+
+![image](https://github.com/user-attachments/assets/98e9b6e0-2453-4784-986f-c83dfd3f6b28)
+
+Create a token with a Name and Generate
+
+![image](https://github.com/user-attachments/assets/ada24cc0-7071-458d-a56f-3572719c6ffc)
+
+Copy Token
+
+Goto Jenkins Dashboard → Manage Jenkins → Credentials → Click on global → Add Credentials
+
+It should look like this,
+
+![image](https://github.com/user-attachments/assets/91caf9dc-3b14-423e-ad0b-9f77a1f59cc9)
+
+You will this page once you click on create
+
+![image](https://github.com/user-attachments/assets/11444580-b0b8-4582-8c7b-4d3867e9a9a5)
+
+
+Now, go to Dashboard → Manage Jenkins → System and Add like the below image.
+
+
+
+Click on Apply and Save
+
+The Configure System option is used in Jenkins to configure different server
+
+Global Tool Configuration is used to configure different tools that we install using Plugins
+
+We will install a sonar scanner in the tools.
+
+
+
+In the Sonarqube Dashboard add a quality gate also
+
+Administration–> Configuration–>Webhooks
+
+
+
+Click on Create
+
+
+
+Add details
+
+
+#in url section of quality gate
+<http://jenkins-public-ip:8090>/sonarqube-webhook/
+
+
+Let’s go to our Pipeline and add Sonarqube Stage in our Pipeline Script.
+
+```
+#under tools section add this environment
+environment {
+        SCANNER_HOME=tool 'sonar-scanner'
+    }
+# in stages add this
+stage("Sonarqube Analysis "){
+            steps{
+                withSonarQubeEnv('sonar-server') {
+                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Petshop \
+                    -Dsonar.java.binaries=. \
+                    -Dsonar.projectKey=Petshop '''
+                }
+            }
+        }
+        stage("quality gate"){
+            steps {
+                script {
+                  waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token' 
+                }
+           }
+        }
+```
+
+Click on Build now, you will see the stage view like this
+
+
+
+To see the report, you can go to Sonarqube Server and go to Projects.
+
+
+
+You can see the report has been generated and the status shows as passed. You can see that there are 6.7k lines. To see a detailed report, you can go to issues.
+
+Step 5 — Install OWASP Dependency Check Plugins
+
+
+
+====================================================================================================================================
+
+
+
+
 ## Run on Application Server
 Running JPetStore sample under Tomcat (using the [cargo-maven2-plugin](https://codehaus-cargo.github.io/cargo/Maven2+plugin.html)).
 

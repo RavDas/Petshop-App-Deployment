@@ -242,9 +242,30 @@ Update New password, This is Sonar Dashboard.
 
 ![8](https://github.com/RavDas/Netflix-Clone-Deployment/assets/86109995/6171a1fa-bfc4-4e31-9d11-c4054bb396de)
 
+#### 3 - Install Trivy
 
+```
+vi trivy.sh
+```
+```
+sudo apt-get install wget apt-transport-https gnupg lsb-release -y
+wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+sudo apt-get update
+sudo apt-get install trivy -y
+```
 
+Execute the ```trivy.sh``` file
 
+```
+sudo chmod +x trivy.sh 
+```
+
+Run the ```trivy.sh``` file
+
+```
+./trivy.sh
+```
 
 
 

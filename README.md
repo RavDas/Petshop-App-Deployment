@@ -267,9 +267,42 @@ Run the ```trivy.sh``` file
 ./trivy.sh
 ```
 
+Next, we will log in to Jenkins and start to configure our Pipeline in Jenkins
 
 
+### Step 3 — Install Plugins like JDK, Sonarqube Scanner, Maven, OWASP Dependency Check
 
+
+#### 3A — Install Plugin
+
+Goto Manage Jenkins -> Plugins -> Available Plugins
+
+Install below plugins
+
+* Eclipse Temurin Installer (Install without restart)
+
+* SonarQube Scanner (Install without restart)
+
+![image](https://github.com/user-attachments/assets/1d086abb-b6e9-4445-8433-ff414aaf7a19)
+
+
+#### 3B — Configure Java and Maven in Global Tool Configuration
+
+Goto Manage Jenkins -> Tools -> Install JDK(17) and Maven3(3.6.0) -> Click on Apply and Save
+
+![image](https://github.com/user-attachments/assets/617e58c1-ddba-403d-811b-79f770b8980f)
+
+
+![image](https://github.com/user-attachments/assets/9e3728d1-cb1c-4808-807d-32a59d642058)
+
+
+#### 3C — Create a Job
+
+Label it as PETSHOP, click on Pipeline and OK.
+
+![image](https://github.com/user-attachments/assets/fc55a5fb-9268-4c0b-b5a1-a094273dc243)
+
+=============================================================================================================================================================================================================================================
 ## Run on Application Server
 Running JPetStore sample under Tomcat (using the [cargo-maven2-plugin](https://codehaus-cargo.github.io/cargo/Maven2+plugin.html)).
 

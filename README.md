@@ -549,7 +549,7 @@ Now we have two credential in the "Global Credentials" section.
 
 ### STEP 7 -Adding Ansible Repository in Ubuntu
 
-Now we are going to run the below commands on the Ansible server
+Now we are going to run the below commands on Jenkins server EC2 instance (Ubun) to add Ansible repository.
 
 Update your system packages:
 
@@ -563,11 +563,16 @@ First Install Required packages to install Ansible.
 sudo apt install software-properties-common
 ```
 
+![image](https://github.com/user-attachments/assets/97f9931d-edfa-4604-be38-2b656b2046be)
+
 Add the ansible repository via PPA
 
 ```
 sudo add-apt-repository --yes --update ppa:ansible/ansible
 ```
+
+![image](https://github.com/user-attachments/assets/7694ee08-271c-4743-9f7d-a9c5cc13518a)
+
 
 Install Python3 on the Ansible master
 
@@ -575,7 +580,35 @@ Install Python3 on the Ansible master
 sudo apt install python3
 ```
 
+![image](https://github.com/user-attachments/assets/126c849c-bfb6-41f8-bcd2-42dc9a7209cc)
 
+Now we install Ansible 
+Step1: Install Ansible on Ubuntu 22.04 LTS
+
+
+sudo apt install ansible -y
+
+
+
+sudo apt install ansible-core -y
+
+
+Step2: To check version :
+
+
+ansible --version
+Create an Inventory file in Ansible
+To add inventory you can create a new directory or add in the default Ansible hosts file
+
+
+cd /etc/ansible
+sudo vi hosts
+Now go to the host file inside the Ansible server and paste the public IP of the Jenkins
+
+
+
+You can create a group and paste ip address below:
+In order to run the playbook we need set the ssh connectio netween Jenkins and Ansible
 ==============================================================================================================
 
 
@@ -604,7 +637,7 @@ Running JPetStore sample under Tomcat (using the [cargo-maven2-plugin](https://c
   ```
 
   > Note:
-  >
+  > 
   > We provide maven profiles per application server as follow:
   >
   > | Profile        | Description |

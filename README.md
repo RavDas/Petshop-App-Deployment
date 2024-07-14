@@ -1,5 +1,5 @@
+![Untitled design (2)](https://github.com/user-attachments/assets/ebc66a05-fdb5-41e4-8aa6-79b4d889ff99)
 
-![Untitled design](https://github.com/user-attachments/assets/c5917b6b-96fa-4894-b647-f53ca04af7e4)
 
 We will be deploying our application in two ways, one using Docker Container and the other using K8S cluster.
 
@@ -154,7 +154,7 @@ sudo chmod 666 jenkins.sh
 ./jenkins.sh    # this will installl jenkins
 ```
 
-Since Jenkins is installed, you will need to go to your AWS EC2 Security Group and open Inbound Port 8080(default port) and 9000 for Jenkins and SonarQube to work.
+Since Jenkins is installed, you will need to go to your AWS EC2 Security Group and open Inbound Port 8080(default port) and 9000 for Jenkins and SonarQube to work. (We already opened the relavant ports)
 
 But for this Application case, we are running Jenkins on another port(8090) since we use port 8080 to run Apache Maven which is used to build the source code. So change the port to 8090 using the below commands.
 
@@ -495,7 +495,7 @@ Goto Dashboard → Manage Jenkins → Plugins → OWASP Dependency-Check. Click 
 
 First, we configured the Plugin and next, we had to configure the Tool
 
-Goto Dashboard → Manage Jenkins → Tools →
+Goto Dashboard → Manage Jenkins → Tools 
 
 ![image](https://github.com/user-attachments/assets/6e5696ad-484f-4878-b180-ee4402f56487)
 
@@ -517,13 +517,23 @@ Now go configure → Pipeline and add this stage to your pipeline and build.
                 dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
+
+        stage('TRIVY FS SCAN') {
+            steps {
+                sh "trivy fs . > trivyfs.txt"
+            }
+        }
 ```
+
+
+The stage view would look like this,
 
 ![image](https://github.com/user-attachments/assets/6d782e9f-6cc3-442a-8958-093f56bebed9)
 
 You will see that in status, a graph will also be generated and Vulnerabilities.
 
 ![image](https://github.com/user-attachments/assets/c82ff299-7c32-450e-80b9-7dbe33c5251f)
+
 
 
 ### Step 6 — Docker plugin and credential Setup
@@ -738,7 +748,7 @@ Add this stage to the pipeline to build and push it to the docker hub, and run t
                 steps {
                     dir('Ansible'){
                        script {
-                             ansiblePlaybook credentialsId: 'ssh', disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/', playbook: 'docker-playbook.yaml'
+                             ansiblePlaybook credentialsId: 'ssh', disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/', playbook: 'docker.yaml'
                         }
                     }
                 }
@@ -855,7 +865,7 @@ Initialize Kubernetes Cluster
 
 ```
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16
-# in case your in root exit from it and run below commands
+# in case your in root exit from it and run below commands (Running Kubernetes components as root can lead to permission issues)
 ```
 
 Set Up Kubectl Configuration
@@ -899,74 +909,85 @@ cat config
 ![image](https://github.com/RavDas/Netflix-Clone-Deployment/assets/86109995/96ffde47-0a5f-4097-b0ff-2ff2176cd11c)
 
 
-Copy it and save it in your local machine and name it as secret-file.txt
-
-Note: Create a secret-file.txt in your file explorer save the config in it and use this at the kubernetes credential section.
+Note: Create a secret-file.txt in your file explorer save the config file in it and use this at the Kubernetes "Credential" section.
 
 Install Kubernetes Plugins in Jenkins, once it’s installed successfully.
 
 ![image](https://github.com/RavDas/Netflix-Clone-Deployment/assets/86109995/900bc68b-4114-46d0-ad39-797a0aa34bf5)
 
 
-Go to manage Jenkins –> manage credentials –> Click on Jenkins global –> add credentials
+Go to manage Jenkins –> Manage Credentials –> Click on Jenkins global –> Add Credentials
 
 ![image](https://github.com/RavDas/Netflix-Clone-Deployment/assets/86109995/67f3859b-c28f-4d2e-b544-8baac3b1b634)
 
 
 
 ### STEP 9 — Master-slave Setup for Ansible and Kubernetes
-To communicate with the Kubernetes clients we have to generate an SSH key on the ansible master node and exchange it with K8s Master System.
 
+To communicate with the Kubernetes clients we have to generate an SSH key on the Ansible master node(in our case it's Jenkins/Ansible) and exchange it with K8s Master System.
 
+```
 ssh-keygen
+```
 
+![image](https://github.com/user-attachments/assets/5f847318-6794-4eba-b36f-ffde325ab8ba)
 
 Change the directory to .ssh and copy the public key (id_rsa.pub)
 
-
+```
 cd .ssh
 cat id_rsa.pub  #copy this public key
+```
 
+![image](https://github.com/user-attachments/assets/e936f119-a457-4b32-b8b9-d2828e37cf16)
 
-Once you copy the public key from the Ansible master, move to the Kubernetes machine change the directory to .ssh and paste the copied public key under authorized_keys.
+Once you copy the public key from the Ansible master, move to the Kubernetes master and change the directory to .ssh and paste the copied public key under authorized_keys.
 
-
+```
 cd .ssh #on k8s master 
 sudo vi authorized_keys
+```
 
+![image](https://github.com/user-attachments/assets/e0afe445-b9b2-495c-948a-1e960ae3cb6e)
 
-Note: Now, insert or paste the copied public key into the new line. make sure don’t delete any existing keys from the authorized_keys file then save and exit.
+Note: Now, insert or paste the copied public key into the new line. Make sure you don’t delete any existing keys from the authorized_keys file then save and exit.
 
-By adding a public key from the master to the k8s machine we have now configured keyless access. To verify you can try to access the k8s master and use the command as mentioned in the below format.
+By adding a public key from the master to the Kubernetes machine, we have now configured keyless access. To verify you can try to access the Kubernetes master and use the command as mentioned as below in the Ansible server.
 
+```
+ssh ubuntu@<public-ip-kubernetes-master>
+```
 
-ssh ubuntu@<public-ip-k8s-master>
+![image](https://github.com/user-attachments/assets/09e0556e-3034-45bb-8034-6a3a55f418a4)
 
+Verifying the above SSH connection.
 
-Verifying the above SSH connection from the master to the Kubernetes we have configured our prerequisites.
+Now go to the host file inside the Ansible server and paste the public IP of the Kubernetes master.
 
-Now go to the host file inside the Ansible server and paste the public IP of the k8s master.
-
-
+![image](https://github.com/user-attachments/assets/55bafbed-258b-4bed-8c22-7e0e00b31cea)
 
 You can create a group and paste ip address below:
 
-
+```
 [k8s]#any name you want
-public ip of k8s-master
+<public ip of kubernetes-master>
+```
 
+Test Ansible Server - Kubernetes Master node connection.(Here Ansible machine works as a master(controlled node) while Kubernetes master machine works as a slave(managed node) from the aspect of Ansible)
 
-Test Ansible Master Slave Connection
-Use the below command to check Ansible master-slave connections.
+Use the below command to check Ansible Server - Kubernetes Master node connection.
 
-
+```
 ansible -m ping k8s
 ansible -m ping all#use this one
+```
+
 If all configuration is correct then you would get below output.
 
+![image](https://github.com/user-attachments/assets/c7e5cb6d-f740-4510-9004-0b112cffafc0)
 
 
-let’s create a simple ansible playbook for Kubernetes deployment.
+Let’s create a simple ansible playbook for Kubernetes deployment.
 
 
 ---
@@ -986,28 +1007,147 @@ let’s create a simple ansible playbook for Kubernetes deployment.
       command: kubectl apply -f /home/ubuntu/deployment.yaml
 ```
 
+The ```src``` file path, that is deployment.yaml file is available in ```/var/lib/jenkins/workspace/petstore/deployment.yaml``` of the Ansible server should be copied to Kubernetes master node for deployment.
+
+![1 3](https://github.com/user-attachments/assets/abeee788-b460-406d-b708-47dda0a5cfbc)
+
+
 Now add the below stage to your pipeline.
 
+```
+       stage('k8s using ansible'){
+              steps{
+                     dir('Ansible') {
+                           script{
+                               ansiblePlaybook credentialsId: 'ssh', disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/', playbook: 'kube.yaml'
+                           }
+                       }
+              }
+       }
+```
+
+Output,
+
+![1 4](https://github.com/user-attachments/assets/77750566-c3df-411e-b7cc-08673963cb02)
+
+In the Kubernetes cluster, give this command
+
+```
+kubectl get all
+kubectl get svc
+```
+
+![image](https://github.com/user-attachments/assets/b9c42175-f651-4526-9fff-107ea2b8de86)
+
+
+Type below to view the deployed application.
+
+```
+<kubernetesslave-ip:serviceport(30699)>/jpetstore
+```
+
+![1 65](https://github.com/user-attachments/assets/d61a734b-4273-4a22-82e2-635f51e52628)
+
+
+============================================================================================================
 
 
 
+Complete Pipeline
 
+```
+pipeline{
+    agent any
+    tools {
+        jdk 'jdk17'
+        maven 'maven3'
+    }
+    environment {
+        SCANNER_HOME=tool 'sonar-scanner'
+    }
+    stages{
+        stage ('clean Workspace'){
+            steps{
+                cleanWs()
+            }
+        }
+        stage ('checkout scm') {
+            steps {
+                git 'https://github.com/Aj7Ay/jpetstore-6.git'
+            }
+        }
+        stage ('maven compile') {
+            steps {
+                sh 'mvn clean compile'
+            }
+        }
+        stage ('maven Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+        stage("Sonarqube Analysis "){
+            steps{
+                withSonarQubeEnv('sonar-server') {
+                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Petstore \
+                    -Dsonar.java.binaries=. \
+                    -Dsonar.projectKey=Petstore '''
+                }
+            }
+        }
+        stage("quality gate"){
+            steps {
+                script {
+                  waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token'
+                }
+           }
+        }
+        stage ('Build war file'){
+            steps{
+                sh 'mvn clean install -DskipTests=true'
+            }
+        }
+        stage("OWASP Dependency Check"){
+            steps{
+                dependencyCheck additionalArguments: '--scan ./ --format XML ', odcInstallation: 'DP-Check'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+        
+        stage('TRIVY FS SCAN') {
+            steps {
+                sh "trivy fs . > trivyfs.txt"
+            }
+        }
+        
+        stage('Ansible docker Docker') {
+            steps {
+                dir('Ansible'){
+                  script {
+                        ansiblePlaybook credentialsId: 'ssh', disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/', playbook: 'docker.yaml'
+                    }
+                }
+            }
+        }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-unning Kubernetes components as root can lead to permission issues 
-================================================================
+       stage("Trivy image scan"){
+            steps{
+                sh "trivy image ravdas/petstore:latest > trivyimage.txt" 
+            }
+        }
+        
+        stage('k8s using ansible'){
+            steps{
+                dir('Ansible') {
+                    script{
+                        ansiblePlaybook credentialsId: 'ssh', disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/', playbook: 'kube.yaml'
+                    }
+                }
+            }
+        }
+   }
+}
+```
 - Build war file
 
   ```

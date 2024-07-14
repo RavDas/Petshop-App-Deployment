@@ -549,7 +549,7 @@ Now we have two credential in the "Global Credentials" section.
 
 ### STEP 7 -Adding Ansible Repository in Ubuntu
 
-Now we are going to run the below commands on Jenkins server EC2 instance (Ubuntu 22.04 LTS) to add Ansible repository.
+1. Now we are going to run the below commands on Jenkins server EC2 instance (Ubuntu 22.04 LTS) to add Ansible repository.
 
 Update your system packages:
 
@@ -582,44 +582,38 @@ sudo apt install python3
 
 ![image](https://github.com/user-attachments/assets/126c849c-bfb6-41f8-bcd2-42dc9a7209cc)
 
-Now we install Ansible on 
+2. Install Ansible on our Jenkins EC2 instance.
 
-
+```
 sudo apt install ansible -y
+```
 
+![image](https://github.com/user-attachments/assets/06194998-537f-4d8c-8844-63d0b1b34111)
 
-
+```
 sudo apt install ansible-core -y
+```
 
+![image](https://github.com/user-attachments/assets/0836e1cf-7cb5-4437-bf2b-7f77035474ec)
 
-Step2: To check version :
+To check version :
 
-
+```
 ansible --version
-Create an Inventory file in Ansible
-To add inventory you can create a new directory or add in the default Ansible hosts file
+```
 
+3. Create an Inventory file in Ansible
+   
+To add inventory, you can create a new directory or add in the default Ansible hosts file. 
 
+```
 cd /etc/ansible
 sudo vi hosts
-Now go to the host file inside the Ansible server and paste the public IP of the Jenkins
+```
 
+Now go to the host file inside the Ansible server and paste the public IP of the Jenkins. Here the public IP of the Jenkins and the Ansible are same because we have Jenkins and Ansible on the same EC2 instance. 
 
-
-You can create a group and paste ip address below:
-In order to run the playbook we need set the ssh connectio netween Jenkins and Ansible
-==============================================================================================================
-
-
-
-
-## Run on Application Server
-Running JPetStore sample under Tomcat (using the [cargo-maven2-plugin](https://codehaus-cargo.github.io/cargo/Maven2+plugin.html)).
-
-- Clone this repository
-
-  ```
-  $ git clone https://github.com/mybatis/jpetstore-6.git
+If you use a different slave machine to install Ansible and continue building, in there you should add the host/master machine's IP.
   ```
 
 - Build war file

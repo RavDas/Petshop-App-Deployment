@@ -1,7 +1,32 @@
 ![Untitled design (2)](https://github.com/user-attachments/assets/ebc66a05-fdb5-41e4-8aa6-79b4d889ff99)
 
+## Project Overview
 
-We will be deploying our application in two ways, one using Docker Container and the other using K8S cluster.
+The goal of this project is to deploy a Java-based Petshop application in a secure, scalable, and automated manner. We will be deploying our application in two ways, one using Docker Container and the other using K8S cluster.
+
+Here are the key components and tools used:
+
+* Jenkins: The CI/CD tool that automates the build, test, and deployment processes. Jenkins listens for code commits and triggers the pipeline.
+
+* Maven Build : Used for building the Java application.
+
+* Maven Compile and Test: Maven compiles the code and runs tests to verify that the application works as expected and to ensures that code changes do not introduce new bugs.
+
+* OWASP Dependency-Check: A tool that scans for vulnerable dependencies during the build process.
+
+* SonarQube: Performs static code analysis to ensure code quality and security.
+
+* Ansible: Manages configurations and deployment using playbooks, integrating with Docker and Kubernetes.
+
+* Docker: Containerizes the application for consistent environments across development, testing, and production.
+
+* Trivy: Scans Dfiles and Docker images for vulnerabilities to maintain secure deployments.
+
+* Kubernetes: Orchestrates the deployment of containerized applications, managing scaling and operations.
+Detailed Pipeline Explanation
+
+
+## Steps
 
 
 Step 1 - Create an Ubuntu(22.04) T2 Large Instance 
@@ -740,11 +765,11 @@ Now write an Ansible playbook to create a docker image, tag it and push it to th
 
 ![1 3](https://github.com/user-attachments/assets/ea3bfd75-f62e-4b9f-9086-95a4fc3dd33d)
 
-Add this stage to the pipeline to build and push it to the docker hub, and run the container.
+Add this stage to the pipeline to build and push it to the docker hub, and run the container. Trivy is used to scan the Docker image being built.
 
 
 ```
-    stage('Install Docker') {
+       stage('Install Docker') {
                 steps {
                     dir('Ansible'){
                        script {
@@ -752,7 +777,13 @@ Add this stage to the pipeline to build and push it to the docker hub, and run t
                         }
                     }
                 }
-    }
+       }
+
+       stage("Trivy image scan"){
+            steps{
+                sh "trivy image ravdas/petstore:latest > trivyimage.txt" 
+            }
+        }
 
 ```
 
@@ -987,9 +1018,10 @@ If all configuration is correct then you would get below output.
 ![image](https://github.com/user-attachments/assets/c7e5cb6d-f740-4510-9004-0b112cffafc0)
 
 
-Let’s create a simple ansible playbook for Kubernetes deployment.
+Let’s create a simple ansible playbook for Kubernetes deployment. This playbook is available in the Ansible/kube.yaml of the Github repository.
 
 
+```
 ---
 - name: Deploy Kubernetes Application
   hosts: k8s  # Replace with your target Kubernetes master host or group
@@ -1113,13 +1145,11 @@ pipeline{
                 dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
-        
         stage('TRIVY FS SCAN') {
             steps {
                 sh "trivy fs . > trivyfs.txt"
             }
         }
-        
         stage('Ansible docker Docker') {
             steps {
                 dir('Ansible'){
@@ -1129,13 +1159,11 @@ pipeline{
                 }
             }
         }
-
        stage("Trivy image scan"){
             steps{
                 sh "trivy image ravdas/petstore:latest > trivyimage.txt" 
             }
         }
-        
         stage('k8s using ansible'){
             steps{
                 dir('Ansible') {
@@ -1147,7 +1175,20 @@ pipeline{
         }
    }
 }
+
 ```
+
+
+
+## Run on Application Server
+
+Running JPetStore sample under Tomcat (using the cargo-maven2-plugin).
+
+- Clone this repository
+
+   ```
+   $ git clone https://github.com/mybatis/jpetstore-6.git
+   ```
 - Build war file
 
   ```

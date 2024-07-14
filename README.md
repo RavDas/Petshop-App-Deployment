@@ -549,7 +549,15 @@ Now we have two credential in the "Global Credentials" section.
 
 ### STEP 7 -Adding Ansible Repository in Ubuntu
 
-1. Now we are going to run the below commands on Jenkins server EC2 instance (Ubuntu 22.04 LTS) to add Ansible repository.
+Setting up Master (Controlled node)-Slave (Managed node) using Ansible
+
+Master-Slave architecture is a common setup in configuration management where the master node controls and manages multiple slave nodes. In Ansible, this can be efficiently achieved with minimal configuration:
+
+Here the public IP of the Jenkins and the Ansible are same because we have Jenkins and Ansible on the same EC2 instance. So we have not created a master-slave for Ansible. We used a single Ansible, and that too is in our Jenkins machine.
+
+1. Install Ansible: Ensure Ansible is installed on the master node (in our case Jenkins/Ansible machine).
+
+Run the below commands on Jenkins server EC2 instance (Ubuntu 22.04 LTS) to add Ansible repository.
 
 Update your system packages:
 
@@ -582,11 +590,11 @@ sudo apt install python3
 
 ![image](https://github.com/user-attachments/assets/126c849c-bfb6-41f8-bcd2-42dc9a7209cc)
 
-2. Install Ansible on our Jenkins EC2 instance.
+Install Ansible on our Jenkins EC2 instance.
 
 ```
 sudo apt install ansible -y
-```
+``` 
 
 ![image](https://github.com/user-attachments/assets/06194998-537f-4d8c-8844-63d0b1b34111)
 
@@ -602,8 +610,8 @@ To check version :
 ansible --version
 ```
 
-3. Create an Inventory file in Ansible
-   
+2. Create an Inventory File: Create an inventory file listing all slave nodes in '/etc/ansible/hosts' of master node (in our case Jenkins/Ansible machine).
+
 To add inventory, you can create a new directory or add in the default Ansible hosts file. 
 
 ```
@@ -611,11 +619,77 @@ cd /etc/ansible
 sudo vi hosts
 ```
 
-Now go to the host file inside the Ansible server and paste the public IP of the Jenkins. Here the public IP of the Jenkins and the Ansible are same because we have Jenkins and Ansible on the same EC2 instance. 
+Now go to the host file inside the Ansible server and paste the public IP of the Jenkins. 
 
-If you use a different slave machine to install Ansible and continue building, in there you should add the host/master machine's IP.
-  ```
+![image](https://github.com/user-attachments/assets/e8a8e9b7-6fe8-4106-9377-6a3553e19f73)
 
+
+You can create a group and paste IP address below:
+
+```
+[local] #any name you want
+IP of Jenkins
+```
+
+(Optional - How to make changes in a ```vi``` fiel and save it.)
+To enter Insert mode, press i .
+To exit Insert mode, press Esc key.
+Type ':x' and press Enter key to save and exit the```vi``` file.
+
+
+![image](https://github.com/user-attachments/assets/2bc981ba-d787-4052-a164-94d4243529bd)
+
+Save and exit from the file.
+
+3. SSH Configuration: Set up SSH keys for passwordless authentication from the master to all slave nodes (in our case both master and slave are Jenkins/Ansible machine).
+
+This setup allows the master node to send commands and configurations to slave nodes, maintaining a unified and consistent environment.   
+
+Let’s install The Ansible plugin to integrate with Jenkins.
+
+![image](https://github.com/user-attachments/assets/7e77b3ad-07b6-4a10-ba0c-f0bb9ee0f3bc)
+
+Now add Credentials to invoke Ansible with Jenkins.
+
+![image](https://github.com/user-attachments/assets/2176d291-96b1-408a-b876-7d0f54be8d9d)
+
+
+In the "Private Key" section of "Credentials", Select "Enter directly" and add your .pem file ( of the Jenkins EC2 Instance ) content for the "Key".
+
+![image](https://github.com/user-attachments/assets/65b6d44e-25e4-4c25-bef0-f563c12016ac)
+
+
+and finally, click on Create.
+
+Give this command in your Jenkins machine to find the path of your Ansible which is used in the "Tools" section of Jenkins.
+
+```
+which ansible
+```
+
+![image](https://github.com/user-attachments/assets/ef68fbef-4f60-431f-9258-0229cf0cd77c)
+
+
+Copy that path and add it to the "Tools" section of Jenkins at ansible installations.
+
+![image](https://github.com/user-attachments/assets/ac4bde5a-311c-48e3-a7d5-8af9378c8f8c)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+================================================================
 - Build war file
 
   ```

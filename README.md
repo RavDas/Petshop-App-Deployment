@@ -40,11 +40,6 @@ Here you need to have the created key-pair(.pem file) in the file directory of t
 
 ![command](https://github.com/user-attachments/assets/1c9f7d39-8332-482a-a80c-8af558be8cc5)
 
-When you create the instances, please edit the security group to allow inbound and outbound traffic.
-
-![image](https://github.com/RavDas/Spring-Boot-Shopping-Cart-Web-App-Deployment/assets/86109995/df26d93a-0c09-4552-b27a-8cbf286085a8)
-
-
 
 **OR**
 
@@ -739,8 +734,222 @@ Now copy the IP address of Jenkins and paste it into the browser
 <jenkins-ip:8081>/jpetstore
 ```
 
-![image](https://github.com/user-attachments/assets/c66971ab-16b1-46b8-a23d-5d20bb3e3479)
+![1 4](https://github.com/user-attachments/assets/7821bfc1-da13-46ad-87d0-a905598c7142)
 
+
+### Step 8 — Kuberenetes Setup
+
+
+Execute two Ubuntu 20.04 instances one for k8s master and the other one for worker. (t2.medium and 8GB storage)
+
+![1 45](https://github.com/user-attachments/assets/477e1a8b-d150-440e-b38f-078915e44bda)
+
+Connect your both master and worker machines to Putty or Mobaxtreme using ssh like earlier using the keypair(.pem) file.
+
+![Screenshot from 2024-07-14 18-41-46](https://github.com/user-attachments/assets/c1972f1e-4c1e-41a7-8116-bdafd5a46153)
+
+
+Install Kubectl on Jenkins machine also.
+
+Kubectl on Jenkins to be installed
+
+```
+sudo apt update
+sudo apt install curl
+curl -LO https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+kubectl version --client
+```
+
+On Master Node
+
+```
+sudo su
+hostname master
+bash
+clear
+```
+
+On Worker Node
+
+```
+sudo su
+hostname worker
+bash
+clear
+```
+
+On both Master & Worker Nodes
+
+```
+sudo apt-get update 
+sudo apt-get install -y docker.io
+sudo usermod –aG docker Ubuntu
+newgrp docker
+sudo chmod 666 /var/run/docker.sock #The Docker daemon communicates with clients through a Unix socket (/var/run/docker.sock)
+```
+
+Add a GPG key provided by Google Cloud, which is used to authenticate packages from the official Kubernetes repository hosted by Google.
+
+```
+sudo curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+```
+
+Download official Kubernetes repository hosted on Google Cloud, which provides stable and tested Kubernetes packages.
+
+```
+sudo tee /etc/apt/sources.list.d/kubernetes.list <<EOF
+deb https://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+
+sudo apt-get update
+```
+
+```
+sudo apt-get install -y kubelet kubeadm kubectl
+```
+
+On Master Node
+
+Initialize Kubernetes Cluster
+
+```
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16
+# in case your in root exit from it and run below commands
+```
+
+Set Up kubectl Configuration
+
+```
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+
+![image](https://github.com/user-attachments/assets/84c49721-b5f4-4b7c-b335-8c60eb5eae73)
+
+Apply a networking solution like Flannel to enable pod-to-pod communication.
+
+```
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+```
+
+On Worker Node
+
+```
+sudo kubeadm join <master-node-ip>:<master-node-port> --token <token> --discovery-token-ca-cert-hash <hash>
+```
+Copy the config file to Jenkins master or the local file manager and save it
+
+
+
+copy it and save it in documents or another folder save it as secret-file.txt
+
+NOTE:
+
+create a new textfile for the config file as secret-file.txt,
+store the copied above complete config details and add it in the
+credentials section.
+
+Install Kubernetes Plugin, Once it’s installed successfully
+
+
+
+go to manage Jenkins –> manage credentials –> Click on Jenkins global –> add credentials
+
+
+
+### STEP 9 — Master-slave Setup for Ansible and Kubernetes
+To communicate with the Kubernetes clients we have to generate an SSH key on the ansible master node and exchange it with K8s Master System.
+
+
+ssh-keygen
+
+
+Change the directory to .ssh and copy the public key (id_rsa.pub)
+
+
+cd .ssh
+cat id_rsa.pub  #copy this public key
+
+
+Once you copy the public key from the Ansible master, move to the Kubernetes machine change the directory to .ssh and paste the copied public key under authorized_keys.
+
+
+cd .ssh #on k8s master 
+sudo vi authorized_keys
+
+
+Note: Now, insert or paste the copied public key into the new line. make sure don’t delete any existing keys from the authorized_keys file then save and exit.
+
+By adding a public key from the master to the k8s machine we have now configured keyless access. To verify you can try to access the k8s master and use the command as mentioned in the below format.
+
+
+ssh ubuntu@<public-ip-k8s-master>
+
+
+Verifying the above SSH connection from the master to the Kubernetes we have configured our prerequisites.
+
+Now go to the host file inside the Ansible server and paste the public IP of the k8s master.
+
+
+
+You can create a group and paste ip address below:
+
+
+[k8s]#any name you want
+public ip of k8s-master
+
+
+Test Ansible Master Slave Connection
+Use the below command to check Ansible master-slave connections.
+
+
+ansible -m ping k8s
+ansible -m ping all#use this one
+If all configuration is correct then you would get below output.
+
+
+
+let’s create a simple ansible playbook for Kubernetes deployment.
+
+
+---
+- name: Deploy Kubernetes Application
+  hosts: k8s  # Replace with your target Kubernetes master host or group
+  gather_facts: yes  # Gather facts about the target host
+
+  tasks:
+    - name: Copy deployment.yaml to Kubernetes master
+      copy:
+        src: /var/lib/jenkins/workspace/petstore/deployment.yaml  # Assuming Jenkins workspace variable
+        dest: /home/ubuntu/
+      become: yes  # Use sudo for copying if required
+      become_user: root  # Use a privileged user for copying if required
+
+    - name: Apply Deployment
+      command: kubectl apply -f /home/ubuntu/deployment.yaml
+Now add the below stage to your pipeline.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+unning Kubernetes components as root can lead to permission issues 
 ================================================================
 - Build war file
 

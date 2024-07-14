@@ -53,7 +53,7 @@ ssh into the EC2 instance using GUI of the MobaXtreme termminal like below (Here
 1. Clone the repo:
 
 ```bash
-git clone https://github.com/RavDas/Petshop-App-Deployment.git
+git clone https://github.com/RavDas/Petstore-App-Deployment.git
 ```
 
 2. Initialize Git Repository
@@ -81,7 +81,7 @@ git commit -m "Initial commit"
 5. Change the remote repo
 
 ```
-git remote add new-origin https://github.com/RavDas/Petshop-App-Deployment.git
+git remote add new-origin https://github.com/RavDas/Petstore-App-Deployment.git
 ```
 replace with your GitHub repo
 
@@ -301,7 +301,7 @@ Goto Manage Jenkins -> Tools -> Install JDK(17) and Maven3(3.6.0) -> Click on Ap
 
 #### 3C — Create a Job
 
-Label it as "petshop", click on Pipeline and OK.
+Label it as "petstore", click on Pipeline and OK.
 
 ![image](https://github.com/user-attachments/assets/fc55a5fb-9268-4c0b-b5a1-a094273dc243)
 
@@ -326,7 +326,7 @@ pipeline{
         }
         stage ('checkout scm') {
             steps {
-                git 'https://github.com/RavDas/Petshop-App-Deployment.git'
+                git 'https://github.com/RavDas/Petstore-App-Deployment.git'
             }
         }
         stage ('maven compile') {
@@ -434,9 +434,9 @@ environment {
         stage("Sonarqube Analysis "){
             steps{
               withSonarQubeEnv('sonar-server') {
-                  sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Petshop \
+                  sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Petstore \
                   -Dsonar.java.binaries=. \
-                  -Dsonar.projectKey=Petshop '''ge 
+                  -Dsonar.projectKey=Petstore '''ge 
               }
             }
         }
@@ -658,8 +658,11 @@ In the "Private Key" section of "Credentials", Select "Enter directly" and add y
 
 ![image](https://github.com/user-attachments/assets/65b6d44e-25e4-4c25-bef0-f563c12016ac)
 
-
 and finally, click on Create.
+
+So now there are 3 "Global credentials".
+
+![1 2](https://github.com/user-attachments/assets/84ea01fc-0055-4afe-9d91-0f0085f1ef4c)
 
 Give this command in your Jenkins machine to find the path of your Ansible which is used in the "Tools" section of Jenkins.
 
@@ -675,19 +678,63 @@ Copy that path and add it to the "Tools" section of Jenkins at ansible installat
 ![image](https://github.com/user-attachments/assets/ac4bde5a-311c-48e3-a7d5-8af9378c8f8c)
 
 
+Now write an Ansible playbook to create a docker image, tag it and push it to the docker hub, and finally, we will deploy it on a container using Ansible. This playbook is available in the Ansible/dockey.yaml of the Github repository.
+
+```
+- name: docker build and push
+  hosts: local  # Replace with the hostname or IP address of your target server 
+  become: yes  # Run tasks with sudo privileges
+  tasks:
+    - name: Update apt package cache
+      apt:
+        update_cache: yes
+    - name: Build Docker Image
+      command: docker build -t petstore .
+      args:
+        chdir: /var/lib/jenkins/workspace/petstore   #path of the Jenkins pipeline in workspace
+    - name: tag image
+      command: docker tag petstore:latest ravdas/petstore:latest #change <ravdas> to your Docker Hub username
+    - name: Log in to Docker Hub
+      community.docker.docker_login:
+        registry_url: https://index.docker.io/v1/
+        username: ravdas #change to your docker hub username
+        password: <docker pat> #paste the generated access-key from the Docker Hub
+    - name: Push image
+      command: docker push ravdas/petstore:latest #change <ravdas> to your Docker Hub username
+    - name: Run container
+      command: docker run -d --name petstore -p 8081:8080 ravdas/petstore:latest  #change <ravdas> to your Docker Hub username
+```
+
+![1 3](https://github.com/user-attachments/assets/ea3bfd75-f62e-4b9f-9086-95a4fc3dd33d)
+
+Add this stage to the pipeline to build and push it to the docker hub, and run the container.
 
 
+```
+    stage('Install Docker') {
+                steps {
+                    dir('Ansible'){
+                       script {
+                             ansiblePlaybook credentialsId: 'ssh', disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/', playbook: 'docker-playbook.yaml'
+                        }
+                    }
+                }
+    }
+
+```
+
+Output of pipeline
+
+![image](https://github.com/user-attachments/assets/aca8bacc-ba5a-4625-b56b-1b634ebb58ef)
 
 
+Now copy the IP address of Jenkins and paste it into the browser
 
+```
+<jenkins-ip:8081>/jpetstore
+```
 
-
-
-
-
-
-
-
+![image](https://github.com/user-attachments/assets/c66971ab-16b1-46b8-a23d-5d20bb3e3479)
 
 ================================================================
 - Build war file

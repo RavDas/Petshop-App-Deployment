@@ -1106,7 +1106,7 @@ pipeline{
         }
         stage ('checkout scm') {
             steps {
-                git 'https://github.com/Aj7Ay/jpetstore-6.git'
+                git 'https://github.com/RavDas/Petstore-App-Deployment.git'
             }
         }
         stage ('maven compile') {

@@ -549,7 +549,7 @@ Now we have two credential in the "Global Credentials" section.
 
 ### STEP 7 -Adding Ansible Repository in Ubuntu
 
-Now we are going to run the below commands on Jenkins server EC2 instance (Ubun) to add Ansible repository.
+Now we are going to run the below commands on Jenkins server EC2 instance (Ubuntu 22.04 LTS) to add Ansible repository.
 
 Update your system packages:
 
@@ -582,8 +582,7 @@ sudo apt install python3
 
 ![image](https://github.com/user-attachments/assets/126c849c-bfb6-41f8-bcd2-42dc9a7209cc)
 
-Now we install Ansible 
-Step1: Install Ansible on Ubuntu 22.04 LTS
+Now we install Ansible on 
 
 
 sudo apt install ansible -y

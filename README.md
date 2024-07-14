@@ -30,7 +30,7 @@ Now let's start the Deployment process.
 
 Launch an AWS T2 Large Instance. Use the image as Ubuntu. You can create a new key pair or use an existing one. Enable ssh (22), HTTP(80) and HTTPS(443) traffic by opening ports in the instance settings in the Security Group.
 
-![image](https://github.com/user-attachments/assets/a61ddcd3-8913-42a2-9bf9-97c3948da5fa)
+![1 55](https://github.com/user-attachments/assets/0d7690d3-bf7f-4f1f-89cf-5b3f3fb29ce6)
 
 Now click on "Connect" button on "Instance" Dashboard. Then ckick on "SSH Client".
 

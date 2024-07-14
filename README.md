@@ -866,7 +866,7 @@ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 
-![image](https://github.com/user-attachments/assets/84c49721-b5f4-4b7c-b335-8c60eb5eae73)
+![1 9](https://github.com/user-attachments/assets/aeaeaffa-9bb8-4304-b3b0-6d2c7c68187c)
 
 Apply a networking solution like Flannel to enable pod-to-pod communication.
 
@@ -879,23 +879,38 @@ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documen
 ```
 sudo kubeadm join <master-node-ip>:<master-node-port> --token <token> --discovery-token-ca-cert-hash <hash>
 ```
-Copy the config file to Jenkins master or the local file manager and save it
+
+![Untitled design (1)](https://github.com/user-attachments/assets/28c6a9a2-c24f-4a0d-909e-ab8fa1181d1b)
+
+![1 2](https://github.com/user-attachments/assets/c21bd636-4eb3-4d3a-b236-8fdb5cd8e863)
+
+Check whether the nodes (instances of master and worker nodes) are created and running.
+
+![image](https://github.com/user-attachments/assets/f4dd68dc-f1d0-423a-92cf-d9fdcda39a52)
 
 
+Copy the config file to Jenkins master or the local file manager and save it to make the connection between Jenkins and Kubernetes.
 
-copy it and save it in documents or another folder save it as secret-file.txt
+```
+cd .kube/
 
-NOTE:
-
-create a new textfile for the config file as secret-file.txt,
-store the copied above complete config details and add it in the
-credentials section.
-
-Install Kubernetes Plugin, Once it’s installed successfully
+cat config
+```
+![image](https://github.com/RavDas/Netflix-Clone-Deployment/assets/86109995/96ffde47-0a5f-4097-b0ff-2ff2176cd11c)
 
 
+Copy it and save it in your local machine and name it as secret-file.txt
 
-go to manage Jenkins –> manage credentials –> Click on Jenkins global –> add credentials
+Note: Create a secret-file.txt in your file explorer save the config in it and use this at the kubernetes credential section.
+
+Install Kubernetes Plugins in Jenkins, once it’s installed successfully.
+
+![image](https://github.com/RavDas/Netflix-Clone-Deployment/assets/86109995/900bc68b-4114-46d0-ad39-797a0aa34bf5)
+
+
+Go to manage Jenkins –> manage credentials –> Click on Jenkins global –> add credentials
+
+![image](https://github.com/RavDas/Netflix-Clone-Deployment/assets/86109995/67f3859b-c28f-4d2e-b544-8baac3b1b634)
 
 
 

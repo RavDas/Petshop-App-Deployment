@@ -28,7 +28,30 @@ Now let's start the Deployment process.
 
 ### Step 1 -  Create an Ubuntu(22.04) T2 Large Instance - 30GB Storage (To install Jenkins with plugins, SonarQube, Trivy)
 
-Launch an AWS T2 Large Instance. Use the image as Ubuntu. You can create a new key pair or use an existing one. Enable ssh (22), HTTP(80) and HTTPS(443) traffic by opening ports in the instance settings in the Security Group.
+Launch an AWS T2 Large Instance. Use the image as Ubuntu. You can create a new key pair or use an existing one. 
+
+Enable below ports in the security group of the Instance,
+
+* SSH: Port 22 (TCP) - Used for secure shell access.
+* HTTP: Port 80 (TCP) - Used for unencrypted web traffic.
+* HTTPS: Port 443 (TCP) - Used for encrypted web traffic.
+* Jenkins: Port 8080 (TCP) - Default HTTP port for Jenkins web interface. (3000-10000)
+* Kubernetes:
+       - API Server: Port 6443 (TCP) - Kubernetes API server. (3000-10000)
+       - NodePort Services: Ports typically in the range 30000-32767 (TCP/UDP) for NodePort services.
+
+* Docker: Port 2376 (TCP) - Docker daemon over TLS.
+* SonarQube: 9000 (3000-10000)
+* Prometheus: Port 9090 (TCP) - Default port for Prometheus metrics server. (3000-10000)
+* Grafana: Port 3000 (TCP) - Default port for Grafana web interface. (3000-10000)
+* Node Exporter: Port 9100 (TCP) - Default port for Prometheus Node Exporter. (3000-10000)
+* SMTP (Plain Text): 25
+* SMTP (Secure/Encrypted - SMTPS): 465
+  
+I have open ports from 3000-10000 port range for ease as most of the required traffic are within that range.
+
+![image](https://github.com/user-attachments/assets/2dbc42ae-3b59-4227-9e45-53ac655ae01a)
+
 
 ![1 55](https://github.com/user-attachments/assets/0d7690d3-bf7f-4f1f-89cf-5b3f3fb29ce6)
 
@@ -739,6 +762,35 @@ Now copy the IP address of Jenkins and paste it into the browser
 
 ### Step 8 — Kuberenetes Setup
 
+Install Kubectl on Jenkins machine (Firstly created EC2 instance) also.
+
+Create a shell script
+
+```
+sudo vi kube.sh
+```
+
+Copy below code part into the ```kube.sh``` file.
+
+```
+sudo apt update
+sudo apt install curl
+curl -LO https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+kubectl version --client
+```
+
+Make the .sh file executable
+
+```
+sudo chmod +x kube.sh
+```
+
+Run the executable file
+
+```
+./kube.sh
+```
 
 Execute two Ubuntu 20.04 instances one for k8s master and the other one for worker. (t2.medium and 8GB storage)
 
@@ -749,19 +801,7 @@ Connect your both master and worker machines to Putty or Mobaxtreme using ssh li
 ![Screenshot from 2024-07-14 18-41-46](https://github.com/user-attachments/assets/c1972f1e-4c1e-41a7-8116-bdafd5a46153)
 
 
-Install Kubectl on Jenkins machine also.
-
-Kubectl on Jenkins to be installed
-
-```
-sudo apt update
-sudo apt install curl
-curl -LO https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl
-sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-kubectl version --client
-```
-
-On Master Node
+8.1. On Master Node
 
 ```
 sudo su
@@ -770,7 +810,7 @@ bash
 clear
 ```
 
-On Worker Node
+8.2. On Worker Node
 
 ```
 sudo su
@@ -779,7 +819,7 @@ bash
 clear
 ```
 
-On both Master & Worker Nodes
+8.3. On both Master & Worker Nodes
 
 ```
 sudo apt-get update 
@@ -809,7 +849,7 @@ sudo apt-get update
 sudo apt-get install -y kubelet kubeadm kubectl
 ```
 
-On Master Node
+8.4. On Master Node
 
 Initialize Kubernetes Cluster
 
@@ -818,7 +858,7 @@ sudo kubeadm init --pod-network-cidr=10.244.0.0/16
 # in case your in root exit from it and run below commands
 ```
 
-Set Up kubectl Configuration
+Set Up Kubectl Configuration
 
 ```
 mkdir -p $HOME/.kube
@@ -834,7 +874,7 @@ Apply a networking solution like Flannel to enable pod-to-pod communication.
 kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 ```
 
-On Worker Node
+8.5. On Worker Node
 
 ```
 sudo kubeadm join <master-node-ip>:<master-node-port> --token <token> --discovery-token-ca-cert-hash <hash>
@@ -929,6 +969,8 @@ let’s create a simple ansible playbook for Kubernetes deployment.
 
     - name: Apply Deployment
       command: kubectl apply -f /home/ubuntu/deployment.yaml
+```
+
 Now add the below stage to your pipeline.
 
 

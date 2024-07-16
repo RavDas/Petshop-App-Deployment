@@ -142,7 +142,7 @@ git push -u origin main
 ```
 ### Step 2 — Install Jenkins, Docker and Trivy
 
-#### 2A - Install Java runtime, Jenkins
+#### 2A - Install Jenkins
 
 
 Connect to your console, and enter these commands to Install Jenkins

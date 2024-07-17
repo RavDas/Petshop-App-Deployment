@@ -80,7 +80,7 @@ I have open ports from 3000-10000 port range for ease as most of the required tr
 
 ![1 55](https://github.com/user-attachments/assets/0d7690d3-bf7f-4f1f-89cf-5b3f3fb29ce6)
 
-Now click on "Connect" button on "Instance" Dashboard. Then ckick on "SSH Client".
+Now click on "Connect" button on "Instance" Dashboard. Then click on "SSH Client".
 
 Here you need to have the created key-pair(.pem file) in the file directory of the your local machine that you launch your console inorder to ssh into EC2 instance which is attached with the same key-pair(.pem file).
 
@@ -91,7 +91,7 @@ Here you need to have the created key-pair(.pem file) in the file directory of t
 
 **OR**
 
-ssh into the EC2 instance using GUI of the MobaXtreme termminal like below (Here you can simply attach the key-pair in "Use private key" section).
+ssh into the EC2 instance using GUI of the MobaXtreme terminal like below (Here you can simply attach the key-pair in "Use private key" section).
 
 ![image](https://github.com/user-attachments/assets/2ae5a416-c1fc-4381-a04c-84cecfee8095)
 
